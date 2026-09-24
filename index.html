@@ -710,6 +710,12 @@
                 Agradeceremos confirmar tu asistencia para compartir juntos este gran día.
             </p>
             
+            <!-- SISTEMA DE PASES INVYTIA (Visual) -->
+            <div id="invytia-passes" class="anim-element anim-fade-up delay-3" style="display: none; background: rgba(229,185,98,0.1); border: 1px solid var(--theme-gold); padding: 15px; border-radius: 10px; margin-bottom: 30px; max-width: 400px; width: 100%;">
+                <div class="info-title glow-text-gold" style="margin-bottom: 5px; font-size: 14px;">Pases Reservados</div>
+                <div id="pass-count" class="glow-text" style="font-size: 32px; font-family: 'Cinzel', serif; color: var(--theme-gold-glow); font-weight: 700;"></div>
+            </div>
+
             <div class="anim-element anim-fade-up delay-4 form-group">
                 <input type="text" id="rsvp-name" class="input-line" placeholder="Tu nombre y apellido">
             </div>
@@ -873,6 +879,25 @@
             document.getElementById("cd-secs").innerText = seconds < 10 ? '0' + seconds : seconds;
         }, 1000);
 
+        // --- SISTEMA DE PASES NUMERADOS INVYTIA (?p=X) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const pasesParam = urlParams.get('p');
+        const passContainer = document.getElementById('invytia-passes');
+        const passCountSpan = document.getElementById('pass-count');
+        const rsvpGuestsInput = document.getElementById('rsvp-guests');
+        
+        let maxPasses = 0;
+
+        if (pasesParam && !isNaN(pasesParam) && parseInt(pasesParam) > 0) {
+            maxPasses = parseInt(pasesParam);
+            passCountSpan.innerText = maxPasses;
+            passContainer.style.display = 'block';
+            
+            // Limitamos y ajustamos el placeholder del input
+            rsvpGuestsInput.max = maxPasses;
+            rsvpGuestsInput.placeholder = `Número de personas (Máx. ${maxPasses})`;
+        }
+
         // --- LÓGICA DE RSVP Y MENSAJES (WHATSAPP) ---
         const phoneNumber = "526961021982"; 
         
@@ -897,9 +922,18 @@
                 alert("Por favor, ingresa tu nombre y selecciona una opción.");
                 return;
             }
-            if (status === "yes" && (guests === "" || guests <= 0)) {
-                alert("Por favor, indica cuántas personas asistirán.");
-                return;
+            
+            if (status === "yes") {
+                if (guests === "" || guests <= 0) {
+                    alert("Por favor, indica cuántas personas asistirán.");
+                    return;
+                }
+                
+                // Validación del sistema de pases Invytia
+                if (maxPasses > 0 && parseInt(guests) > maxPasses) {
+                    alert(`El enlace que recibiste tiene asignados un máximo de ${maxPasses} pase(s). Por favor, ajusta el número de personas.`);
+                    return;
+                }
             }
 
             let message = "";
